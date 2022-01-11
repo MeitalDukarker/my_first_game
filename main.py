@@ -1,1 +1,1 @@
-print("my game")
+print("my massage")
