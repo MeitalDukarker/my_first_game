@@ -9,13 +9,13 @@ pygame.init()
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("My First Game")
 
+
 # www.pngaaa.com
 bk_image = pygame.image.load("background.jpg")
 ship_image = pygame.image.load("ship.png")
 ship_image = pygame.transform.scale(ship_image, (50, 80)) 
 laser_image = pygame.image.load("laser2.png")
 laser_image = pygame.transform.scale(laser_image, (10, 20)) 
-
 clock = pygame.time.Clock()
 
 circle_x = 10
@@ -28,20 +28,26 @@ x_step = 10
 laser_list = []
 play = True
 
+EXPLOSION= "explosion.mp3"
 
-# laser_list = [[121,780],[171,780]]
-# i=1
-# l=[171,10]
-# l[0] = 171
-# l[1] = 10
-
-
+total=0
+def is_laser_hit(laser_pos):
+  return abs(laser_pos[0]-circle_x) <50 and abs(laser_pos[1]-circle_y) <50
 # prints all the laser on the screen
 def print_lasers():
+  global total
+  global circle_x
   for i in range(len(laser_list)):
-    l = laser_list[i]
-    screen.blit(laser_image,(l[0],l[1]))
-    laser_list[i] = [l[0],l[1]-30]
+    laser = laser_list[i]
+    screen.blit(laser_image,(laser[0],laser[1]))
+    laser_list[i] = [laser[0],laser[1]-30]
+    if is_laser_hit(laser):
+      print("hit")
+      pygame.mixer.init()
+      pygame.mixer.music.load(EXPLOSION)
+      pygame.mixer.Channel(2).play(pygame.mixer.Sound(EXPLOSION))
+      total+=1
+      circle_x = 0 
 
   if len(laser_list) > 0 and laser_list[0][1] < 0:
     laser_list.remove(laser_list[0])
@@ -53,9 +59,13 @@ pygame.mixer.music.load(SOUND_FILE)
 pygame.mixer.music.load(GUN_SHOOT)
 pygame.mixer.Channel(0).play(pygame.mixer.Sound(SOUND_FILE))
 
-
+WHITE=(255,255,255)
 while play:
   screen.blit(bk_image,(0,0))
+  font = pygame.font.SysFont(None, 72)
+  img = font.render('Score:' +str(total),True, WHITE)
+  screen.blit(img, (60, 40))
+  
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       play = False
@@ -72,7 +82,7 @@ while play:
         
 
   screen.blit(ship_image,(ship_x,ship_y))
-  pygame.draw.circle(screen,(255,255,255),(circle_x , circle_y),10)
+  pygame.draw.circle(screen,(255,255,255),(circle_x , circle_y),20)
   print_lasers()
 
   circle_x +=circle_x_step
