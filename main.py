@@ -1,8 +1,8 @@
 import pygame
 
 # screen size 
-WINDOW_W = 900
-WINDOW_H = 700
+WINDOW_W = 1680
+WINDOW_H = 1000
 WINDOW_SIZE = (WINDOW_W, WINDOW_H)
 
 pygame.init()
@@ -58,7 +58,8 @@ pygame.mixer.init()
 pygame.mixer.music.load(SOUND_FILE)
 pygame.mixer.music.load(GUN_SHOOT)
 pygame.mixer.Channel(0).play(pygame.mixer.Sound(SOUND_FILE))
-
+pygame.joystick.init()
+joysticks = [pygame.joystick.Joystick(i).init() for i in range (pygame.joystick.get_count())]
 WHITE=(255,255,255)
 while play:
   screen.blit(bk_image,(0,0))
@@ -69,6 +70,15 @@ while play:
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       play = False
+    elif event.type == pygame.JOYBUTTONDOWN:
+      laser_list.append([ship_x+21,ship_y])
+      laser_list.append([ship_x+21,ship_y-20])
+      pygame.mixer.Channel(1).play(pygame.mixer.Sound(GUN_SHOOT))
+    elif event.type == pygame.JOYAXISMOTION:
+        if event.axis == 1 and event.value <= -0.1 :
+          ship_x -= x_step
+        elif event.axis == 1 and event.value > 0.0 :
+          ship_x += x_step
     elif event.type == pygame.KEYDOWN:
       if event.key == pygame.K_LEFT:
         ship_x -= x_step
@@ -94,7 +104,7 @@ while play:
   pygame.display.flip()
 
 
-  clock.tick(50)
+  clock.tick(40)
 
 
 pygame.quit()
