@@ -1,110 +1,112 @@
-import pygame
+import pygame, sys, random
 
-# screen size 
-WINDOW_W = 1680
-WINDOW_H = 1000
-WINDOW_SIZE = (WINDOW_W, WINDOW_H)
+from pygame.constants import K_DOWN
+
+
+def ball_animation ():
+    global ball_speed_x , ball_speed_y, player_score, opponent_score
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
+
+    if ball.top<=0 or ball.bottom>=window_h:
+        ball_speed_y *=-1
+    if ball.left<=0:
+        opponent_score += 1
+        ball_restart()
+    if ball.right>=window_w:
+        player_score += 1
+        ball_restart()
+    if ball.colliderect(player) or ball.colliderect(opponent):
+        ball_speed_x*= -1
+
+def player_animation():
+    global player_speed
+    player.y += player_speed
+    player_speed = 0
+    if player.top<=0:
+        player.top=0
+    if player.bottom>= window_h:
+        player.bottom= window_h
+
+def opponent_ai():
+    if opponent.top < ball.y:
+        opponent.top+= opponent_speed
+    if opponent.bottom > ball.y:
+        opponent.bottom -= opponent_speed
+    if opponent.top<=0:
+        opponent.top=0
+    if opponent.bottom>= window_h:
+        opponent.bottom= window_h
+
+def ball_restart():
+    global ball_speed_x , ball_speed_y
+    ball.center= (window_w/2, window_h/2)
+    ball_speed_y *= random.choice((1,-1))
+    ball_speed_x *= random.choice((1,-1))
 
 pygame.init()
-screen = pygame.display.set_mode(WINDOW_SIZE)
-pygame.display.set_caption("My First Game")
+
+player_score=0
+opponent_score=0
+game_font= pygame.font.SysFont(None, 32)
 
 
-# www.pngaaa.com
-bk_image = pygame.image.load("background.jpg")
-ship_image = pygame.image.load("ship.png")
-ship_image = pygame.transform.scale(ship_image, (50, 80)) 
-laser_image = pygame.image.load("laser2.png")
-laser_image = pygame.transform.scale(laser_image, (10, 20)) 
-clock = pygame.time.Clock()
 
-circle_x = 10
-circle_y = WINDOW_H /2
-ship_x = WINDOW_W /2
-ship_y = WINDOW_H - 80
+#screen size
+window_w= 900
+window_h=500
+window_size=(window_w, window_h)
 
-circle_x_step = 10
-x_step = 10
-laser_list = []
-play = True
+clock= pygame.time.Clock()
 
-EXPLOSION= "explosion.mp3"
+screen = pygame.display.set_mode(window_size)
+pygame.display.set_caption("Pong")
 
-total=0
-def is_laser_hit(laser_pos):
-  return abs(laser_pos[0]-circle_x) <50 and abs(laser_pos[1]-circle_y) <50
-# prints all the laser on the screen
-def print_lasers():
-  global total
-  global circle_x
-  for i in range(len(laser_list)):
-    laser = laser_list[i]
-    screen.blit(laser_image,(laser[0],laser[1]))
-    laser_list[i] = [laser[0],laser[1]-30]
-    if is_laser_hit(laser):
-      print("hit")
-      pygame.mixer.init()
-      pygame.mixer.music.load(EXPLOSION)
-      pygame.mixer.Channel(2).play(pygame.mixer.Sound(EXPLOSION))
-      total+=1
-      circle_x = 0 
+ball= pygame.Rect(window_w/2-15, window_h/2-15 ,30 ,30)
+player=pygame.Rect(window_w-20,window_h/2-70, 10,140)
+opponent= pygame.Rect(10,window_h/2-70,10,140)
 
-  if len(laser_list) > 0 and laser_list[0][1] < 0:
-    laser_list.remove(laser_list[0])
+bg_color=pygame.Color('grey12')
+light_grey=(200,200,200)
 
-GUN_SHOOT= "Gun shoot..mp3"
-SOUND_FILE= "SONG.mp3"
-pygame.mixer.init()
-pygame.mixer.music.load(SOUND_FILE)
-pygame.mixer.music.load(GUN_SHOOT)
-pygame.mixer.Channel(0).play(pygame.mixer.Sound(SOUND_FILE))
-pygame.joystick.init()
-joysticks = [pygame.joystick.Joystick(i).init() for i in range (pygame.joystick.get_count())]
-WHITE=(255,255,255)
-while play:
-  screen.blit(bk_image,(0,0))
-  font = pygame.font.SysFont(None, 72)
-  img = font.render('Score:' +str(total),True, WHITE)
-  screen.blit(img, (60, 40))
-  
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      play = False
-    elif event.type == pygame.JOYBUTTONDOWN:
-      laser_list.append([ship_x+21,ship_y])
-      laser_list.append([ship_x+21,ship_y-20])
-      pygame.mixer.Channel(1).play(pygame.mixer.Sound(GUN_SHOOT))
-    elif event.type == pygame.JOYAXISMOTION:
-        if event.axis == 1 and event.value <= -0.1 :
-          ship_x -= x_step
-        elif event.axis == 1 and event.value > 0.0 :
-          ship_x += x_step
-    elif event.type == pygame.KEYDOWN:
-      if event.key == pygame.K_LEFT:
-        ship_x -= x_step
-      if event.key == pygame.K_RIGHT:
-        ship_x += x_step
-      if event.key == pygame.K_SPACE:
-        laser_list.append([ship_x+21,ship_y])
-        laser_list.append([ship_x+21,ship_y-20])
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound(GUN_SHOOT))
+ball_speed_x=7 * random.choice((1,-1))
+ball_speed_y=7 * random.choice((1,-1))
+player_speed=0
+opponent_speed= 7
+while True:
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            pygame.quit() 
+            sys.exit()
+        if event.type==pygame.KEYDOWN:
+            if event.key== pygame.K_DOWN:
+                player_speed +=20
+            if event.key== pygame.K_UP:
+                player_speed -=20
+        if event.type==pygame.KEYDOWN:
+            if event.key== pygame.K_UP:
+                player_speed -=20
+            if event.key== pygame.K_DOWN:
+                player_speed +=20
 
-        
-
-  screen.blit(ship_image,(ship_x,ship_y))
-  pygame.draw.circle(screen,(255,255,255),(circle_x , circle_y),20)
-  print_lasers()
-
-  circle_x +=circle_x_step
-  if circle_x > WINDOW_W:
-    circle_x_step = -10
-  if circle_x <0 :
-    circle_x_step = 10
-  
-  pygame.display.flip()
+    ball_animation() 
+    player_animation()
+    opponent_ai()
 
 
-  clock.tick(40)
+    screen.fill(bg_color)
+    pygame.draw.rect(screen, light_grey,player)
+    pygame.draw.rect(screen, light_grey,opponent)
+    pygame.draw.ellipse(screen, light_grey,ball)
+    pygame.draw.aaline(screen, light_grey,(window_w/2,0),(window_w/2,window_h))
 
 
-pygame.quit()
+    player_text= game_font.render(f"{player_score}", False, light_grey)
+    screen.blit(player_text, (430,240))
+
+    opponent_text= game_font.render(f"{opponent_score}", False, light_grey)
+    screen.blit(opponent_text, (460,240))
+
+
+    pygame.display.flip()
+    clock.tick(50)
